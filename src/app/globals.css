@@ -119,24 +119,56 @@ body.app-body {
   }
 
   /* Tree visualization styles */
-  .tree-connector {
-    @apply absolute text-xs font-mono leading-none select-none;
-    color: var(--border-600);
+  .tree-node {
+    position: relative;
+    --tree-depth: 0;
+    --tree-indent-step: 1rem;
+    --tree-gutter: 1.5rem;
+    --tree-spine-offset: calc(var(--tree-gutter) / 2);
+    --tree-elbow-y: 1.4rem;
+    margin-left: calc(var(--tree-depth) * var(--tree-indent-step));
+    padding-left: var(--tree-gutter);
   }
 
-  .tree-line {
-    @apply absolute;
+  .tree-node--root {
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .tree-node:not(.tree-node--root)::before,
+  .tree-node:not(.tree-node--root)::after {
+    content: "";
+    position: absolute;
+    left: var(--tree-spine-offset);
     background-color: var(--border-600);
-    opacity: 0.4;
+    pointer-events: none;
   }
 
-  .tree-line-vertical {
-    @apply tree-line;
+  .tree-node:not(.tree-node--root)::before {
+    top: 0;
+    bottom: 0;
     width: 1px;
+    opacity: 0.45;
   }
 
-  .tree-line-horizontal {
-    @apply tree-line;
+  .tree-node:not(.tree-node--root)::after {
+    top: var(--tree-elbow-y);
+    width: calc(var(--tree-gutter) - var(--tree-spine-offset));
     height: 1px;
+    opacity: 0.6;
+  }
+
+  .tree-node--last.tree-node--leaf::before {
+    bottom: auto;
+    height: var(--tree-elbow-y);
+  }
+
+  .tree-node__content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .tree-node__children {
+    margin-top: 0.25rem;
   }
 }
