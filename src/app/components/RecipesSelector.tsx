@@ -4,6 +4,7 @@ import { IRecipe } from "@/lib/models";
 import { useTreeSelectedRecipe } from "@/lib/selectors";
 import { RadioGroup, Field, Radio, Label } from "@headlessui/react";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
+import type { CSSProperties } from "react";
 import { StuffIcon } from "./StuffIcon";
 
 interface RecipesSelectorProps {
@@ -14,7 +15,9 @@ interface RecipesSelectorProps {
   isLast?: boolean;
 }
 
-const marginleftClasses = ["ml-4", "ml-8", "ml-12", "ml-16", "ml-20", "ml-24"];
+const TREE_SPACING = "1.5rem";
+const TREE_PANEL_INSET = "0.5rem";
+const TREE_LINE_THICKNESS = "0.125rem";
 
 export function RecipesSelector({
   rowId,
@@ -30,21 +33,31 @@ export function RecipesSelector({
     dispatch(selectTreeRecipe({ rowId, recipe, treePath }));
   };
 
-  const marginleftClass =
-    marginleftClasses[
-      Math.min(treePath.length - 1, marginleftClasses.length - 1)
-    ];
-  const isNested = treePath.length > 1;
-  const treeDepth = treePath.length - 1;
+  const treeDepth = Math.max(treePath.length - 1, 0);
+  const isNested = treeDepth > 0;
 
-  // Enhanced positioning for clearer tree visualization
-  const connectorLeftPosition = treeDepth > 0 ? 2 + (treeDepth - 1) * 8 : 0;
+  const depthStyles = {
+    "--tree-depth": `${treeDepth}`,
+    "--tree-spacing": TREE_SPACING,
+    "--tree-panel-inset": TREE_PANEL_INSET,
+    "--tree-line-thickness": TREE_LINE_THICKNESS,
+  } as CSSProperties;
 
-  // Calculate content padding to avoid overlap with connectors
-  const contentLeftPadding = isNested ? connectorLeftPosition + 16 : 0; // 16px = connector width + horizontal line + some margin
+  const connectorLeft =
+    "calc(var(--tree-panel-inset) + (var(--tree-depth) - 1) * var(--tree-spacing))";
+  const connectorHeight = isNested
+    ? isLast
+      ? "calc(50% - var(--tree-line-thickness) / 2)"
+      : "100%"
+    : undefined;
+  const horizontalTop =
+    "calc(50% - var(--tree-line-thickness) / 2)";
+
+  const contentPadding =
+    "calc(var(--tree-depth) * var(--tree-spacing))";
 
   return (
-    <div className={`relative panel-compact mb-1 ${marginleftClass}`}>
+    <div className="relative panel-compact mb-1" style={depthStyles}>
       {/* Tree connector lines */}
       {isNested && (
         <>
@@ -52,10 +65,10 @@ export function RecipesSelector({
           <div
             className="absolute tree-line"
             style={{
-              left: `${connectorLeftPosition}px`,
-              top: "0px",
-              width: "2px",
-              height: isLast ? "50%" : "100%",
+              left: connectorLeft,
+              top: "0",
+              width: "var(--tree-line-thickness)",
+              height: connectorHeight,
               backgroundColor: "var(--border-600)",
               opacity: "0.6",
             }}
@@ -64,13 +77,12 @@ export function RecipesSelector({
           <div
             className="absolute tree-line"
             style={{
-              left: `${connectorLeftPosition}px`,
-              top: "50%",
-              width: "12px",
-              height: "2px",
+              left: connectorLeft,
+              top: horizontalTop,
+              width: "var(--tree-spacing)",
+              height: "var(--tree-line-thickness)",
               backgroundColor: "var(--border-600)",
               opacity: "0.8",
-              transform: "translateY(-1px)",
             }}
           ></div>
         </>
@@ -78,8 +90,7 @@ export function RecipesSelector({
       <div
         className="relative z-10"
         style={{
-          paddingLeft:
-            contentLeftPadding > 0 ? `${contentLeftPadding}px` : undefined,
+          paddingLeft: contentPadding,
         }}
       >
         <span className="font-medium text-sm tracking-wide text-muted-300">
